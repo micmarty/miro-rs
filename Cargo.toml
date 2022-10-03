@@ -1,0 +1,21 @@
+[package]
+name = "miro-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["Michał Martyniak"]
+repository = "https://github.com/micmarty/miro-rs"
+readme = "README.md"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = { version = "0.11", features = ["blocking", "json"] }
+serde_json = "1.0"
+serde = { version = "1.0.145", features = ["derive"] }
+tui = "0.19"
+crossterm = "0.25"
+unicode-width = "0.1"
+tokio = { version = "1", features = ["full"] }
+strum = { version = "0.24", features = ["derive"] }
+strum_macros = "0.24"
