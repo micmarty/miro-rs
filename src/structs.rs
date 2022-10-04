@@ -2,7 +2,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 // use chrono::{DateTime, Utc};
+// use derivative::Derivative;
 use strum::IntoStaticStr;
+
 // use strum::IntoStaticStr;
 
 // Shape: straight elbowed curved
@@ -98,12 +100,28 @@ pub enum TextOrientation {
     Aligned,
 }
 
-#[derive(Deserialize)]
+// square rectangle
+#[derive(Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, IntoStaticStr)]
+#[serde(rename_all = "snake_case")]
+#[strum(serialize_all = "snake_case")]
+pub enum StickyNoteShape {
+    Square,
+    Rectangle,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StickyNoteData {
+    pub shape: StickyNoteShape,
+    pub content: String,
+}
+
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct StickyNoteResponse {
     pub id: String,
     pub data: Value,
-    pub style: CardStyle,
+    pub style: StickyNoteStyle,
     pub position: Position,
     pub geometry: Geometry,
     pub created_at: String,
@@ -116,14 +134,25 @@ pub struct StickyNoteResponse {
     #[serde(rename = "type")]
     pub object_type: String,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StickyNoteCreate {
+    pub data: StickyNoteData,
+    pub style: Option<StickyNoteStyle>,
+    // #[serde(default)]
+    pub position: Option<Position>,
+    // #[serde(default)]
+    pub geometry: Option<StickyNoteGeometry>,
+    // pub parent: Option<Value>,
+}
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Captions {
     content: String,
     position: String,
     text_align_vertical: VerticalAlignment,
 }
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     id: String,
@@ -131,14 +160,14 @@ pub struct User {
     object_type: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Item {
     pub id: String,
     pub links: Value, //TODO
     pub position: Position,
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Connector {
     pub id: String,
@@ -156,14 +185,14 @@ pub struct Connector {
     #[serde(rename = "type")]
     pub object_type: String,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub struct CardStyle {
+pub struct StickyNoteStyle {
     pub fill_color: Color,
     pub text_align: HorizontalAlignment,
     pub test_align_vertical: Option<VerticalAlignment>,
 }
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct ConnectorStyle {
     pub color: String, // hex: #1a1a1a
@@ -176,14 +205,47 @@ pub struct ConnectorStyle {
     pub text_orientation: TextOrientation,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Position {
     pub x: f32,
     pub y: f32,
+    // TODO origin can only be "center", quote: "Currently, only one option is supported".
 }
-#[derive(Deserialize)]
+
+impl Default for Position {
+    fn default() -> Position {
+        Position { x: 0.0, y: 0.0 }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Geometry {
     pub width: f32,
-    pub height: f32,
-    pub rotation: Option<f32>,
+    // pub height: f32,
+    // pub rotation: Option<f32>,
+}
+impl Default for Geometry {
+    fn default() -> Geometry {
+        Geometry {
+            width: 200.0,
+            // height: 200.0,
+            // rotation: Some(0.0),
+        }
+    }
+}
+
+#[derive(Deserialize, Debug)]
+pub struct MiroResponseError {
+    pub code: String,
+    pub message: String,
+    pub status: i32,
+    #[serde(rename = "type")]
+    pub error_type: String,
+}
+// You can set either the width or height. You cannot set both the at the same time
+#[derive(Debug, Serialize)]
+#[serde(untagged)]
+pub enum StickyNoteGeometry {
+    Height { height: f32 },
+    Width { width: f32 },
 }
