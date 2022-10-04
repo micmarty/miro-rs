@@ -10,6 +10,8 @@ miro-rs = { git = "https://github.com/micmarty-rs/regex", branch = "master" }
 ```
 
 # Status
+- [ ] Board
+    - [x] Creation (basic)
 - [ ] Sticky notes
     - [x] Creation (basic)
     - [ ] Creation (full)
