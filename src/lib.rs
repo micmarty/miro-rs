@@ -46,15 +46,21 @@ pub fn create_sticky_note(
         .header(CONTENT_TYPE, "application/json")
         .bearer_auth(api_token)
         .json(&note);
-    println!("{:?}", serde_json::to_string(&note));
-    let response = builder.send().expect("Could not create a note");
+    let _note = format!("dasda {}", serde_json::to_string_pretty(&note).unwrap());
+    println!("Request sent: {_note}");
+
+    let response = builder.send().expect(&_note);
 
     match response.status() {
-        reqwest::StatusCode::CREATED => {
-            Some(response.json::<StickyNoteResponse>().expect("msasdg"))
-        }
+        reqwest::StatusCode::CREATED => Some(
+            response
+                .json::<StickyNoteResponse>()
+                .expect("Could not deserialize successfull response"),
+        ),
         other => {
-            let r: MiroResponseError = response.json().expect("Error opening user detail response");
+            let r: MiroResponseError = response
+                .json()
+                .expect("Could not deserialize error response");
             let err_msg = format!(
                 "Error in creating sticky note: expected {}, got {}: {:?}",
                 StatusCode::CREATED,
@@ -63,61 +69,8 @@ pub fn create_sticky_note(
             );
             eprintln!("{}", err_msg);
             None
-            // Err(Error);
         }
     }
-    // .context("Could not parse JSON")?;
-    // match response {
-    //     Ok(res) => {
-    //         let note = res.json::<StickyNoteResponse>()?;
-    //         match note {
-    //             Ok(j) => Ok(j),
-    //             Err(e) => Err(HttpError::JsonParse(e)),
-    //         }
-    //     }
-    //     Err(e) => Err(HttpError::RequestFailed(e)),
-    // }
-    // match response.status() {
-    //     reqwest::StatusCode::OK | reqwest::StatusCode::CREATED => {
-    //         let note = response.json::<StickyNoteResponse>()?;
-    //         Ok(note)
-    //     }
-    //     _ => {
-    //         println!("{:?}", &response);
-    //         let error_text = &response.text()?;
-    //         println!("{:?}", &error_text);
-    //         Err(error_text.to_string())
-    //     }
-
-    // Ok(response) => match response.status() {
-    //     reqwest::StatusCode::CREATED => match response.json::<StickyNoteResponse>() {
-    //         Ok(note) => Ok(Weather {
-    //             temperature: json.main.temp,
-    //         }),
-    //         Err(_error) => Err(ProviderError::Unknown),
-    //     },
-    //     _ => Err(ProviderError::Unknown),
-    // },
-    // Err(_error) => Err(ProviderError::Unknown),
-    // match response.status() {
-    //         | reqwest::StatusCode::CREATED
-    //         | reqwest::StatusCode::NO_CONTENT => {
-    //             let note: StickyNoteResponse = response.json();
-    //             Ok(note)
-    //         }
-    //         _ => match res.text().await {
-    //             Err(err)
-    //         }
-    //     Ok(json) => json,
-    //     Error(err) => {
-    //         panic!(
-    //             "Creating sticky note failed with status: {}, json: {}",
-    //             err,
-    //             response.text()?
-    //         )
-    //     }
-    // }
-    // .unwrap_or_else(|err| {});
 }
 
 pub fn create_connector(
