@@ -32,7 +32,7 @@ pub fn create_sticky_note(
         },
         style: None,
         position: Some(pos),
-        geometry: Some(StickyNoteGeometry::Width {
+        geometry: Some(StickyNoteGeometry::WithWidthOnly {
             width: 44.0,
             // height: 500.0,
             // rotation: None,

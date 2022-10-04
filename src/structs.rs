@@ -246,6 +246,6 @@ pub struct MiroResponseError {
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
 pub enum StickyNoteGeometry {
-    Height { height: f32 },
-    Width { width: f32 },
+    WithHeightOnly { height: f32 },
+    WithWidthOnly { width: f32 },
 }
