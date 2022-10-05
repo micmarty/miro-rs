@@ -1,8 +1,8 @@
-use miro_rs::structs::Position;
+use miro_rs::structs::{Position, Positional, StickyNoteCreate};
 use serde::{Deserialize, Serialize};
 use serde_json::Deserializer;
 use serde_json::{json, Value};
-use std::env;
+use std::{default, env};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let board_name = "RustyBrown";
@@ -13,23 +13,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // thread::sleep(ten_millis);
     // create_board(board_name)?;
-    let mut prev_note = miro_rs::create_sticky_note(
-        &board_id,
-        &String::from("0"),
-        Position { x: 0.0, y: 600.0 },
-        "square",
-    )
-    .expect("dasd");
+    let mut custom_note = StickyNoteCreate::with_text("siema".into());
+    custom_note.at(Position { x: 400.0, y: 600.0 });
+    let mut prev_note = miro_rs::create_sticky_note(&board_id, &custom_note).expect("dasd");
     for idx in 1..5 {
-        let next_note = miro_rs::create_sticky_note(
-            &board_id,
-            &format!("{}", idx),
-            Position {
-                x: idx as f32 * 260.0,
-                y: idx as f32 * 250.0,
-            },
-            "square",
-        );
+        let mut next_note = StickyNoteCreate::with_text(format!("{}", idx));
+        next_note.at(Position {
+            x: idx as f32 * 260.0,
+            y: idx as f32 * 250.0,
+        });
+        let next_note = miro_rs::create_sticky_note(&board_id, &next_note);
         if let Some(next_note) = next_note {
             println!("{}", next_note.style.fill_color);
             let _ = miro_rs::create_connector(&board_id, &prev_note.id, &next_note.id);

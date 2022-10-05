@@ -15,30 +15,10 @@ use structs::{
 
 use crate::structs::MiroResponseError;
 
-pub fn create_sticky_note(
-    board: &str,
-    text: &String,
-    pos: Position,
-    shape: &str,
-) -> Option<StickyNoteResponse> {
+pub fn create_sticky_note(board: &str, note: &StickyNoteCreate) -> Option<StickyNoteResponse> {
     let url = format!("https://api.miro.com/v2/boards/{}/sticky_notes", board);
     let api_token = env::var("MIRO_ACCESS_TOKEN").expect("env var not set");
     let client = Client::new();
-
-    let note = StickyNoteCreate {
-        data: StickyNoteData {
-            content: String::from(text),
-            shape: StickyNoteShape::Rectangle,
-        },
-        style: None,
-        position: Some(pos),
-        geometry: Some(StickyNoteGeometry::WithWidthOnly {
-            width: 44.0,
-            // height: 500.0,
-            // rotation: None,
-        }),
-        // parent: None,
-    };
 
     let builder = client
         .post(url)

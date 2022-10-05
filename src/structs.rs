@@ -109,11 +109,26 @@ pub enum StickyNoteShape {
     Rectangle,
 }
 
+impl Default for StickyNoteShape {
+    fn default() -> Self {
+        Self::Square
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StickyNoteData {
     pub shape: StickyNoteShape,
     pub content: String,
+}
+
+impl StickyNoteData {
+    fn new(text: String) -> Self {
+        Self {
+            content: text,
+            shape: Default::default(),
+        }
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -145,6 +160,38 @@ pub struct StickyNoteCreate {
     pub geometry: Option<StickyNoteGeometry>,
     // pub parent: Option<Value>,
 }
+
+pub trait Positional {
+    fn at(&mut self, pos: Position);
+}
+
+impl Positional for StickyNoteCreate {
+    fn at(&mut self, pos: Position) {
+        self.position = Some(pos);
+    }
+}
+
+impl StickyNoteCreate {
+    // TODO refactor to builder pattern
+    pub fn with_text(text: String) -> Self {
+        Self {
+            data: StickyNoteData::new(text),
+            style: Default::default(),
+            position: Default::default(),
+            geometry: Default::default(),
+        }
+    }
+}
+
+// impl Default for StickyNoteCreate {
+//     fn default() -> Self {
+//         Self {
+//             data: StickyNoteData::new(String::from("default text")),
+//             ..Default::default()
+//         }
+//     }
+// }
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Captions {
@@ -190,7 +237,18 @@ pub struct Connector {
 pub struct StickyNoteStyle {
     pub fill_color: Color,
     pub text_align: HorizontalAlignment,
-    pub test_align_vertical: Option<VerticalAlignment>,
+    pub text_align_vertical: Option<VerticalAlignment>,
+}
+
+impl Default for StickyNoteStyle {
+    fn default() -> Self {
+        Self {
+            fill_color: Color::Yellow,
+            // TODO replace with ..Default::default()
+            text_align: HorizontalAlignment::Center,
+            text_align_vertical: Some(VerticalAlignment::Middle),
+        }
+    }
 }
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -246,6 +304,12 @@ pub struct MiroResponseError {
 #[derive(Debug, Serialize)]
 #[serde(untagged)]
 pub enum StickyNoteGeometry {
-    WithHeightOnly { height: f32 },
-    WithWidthOnly { width: f32 },
+    WithHeight { height: f32 },
+    WithWidth { width: f32 },
+}
+
+impl Default for StickyNoteGeometry {
+    fn default() -> Self {
+        StickyNoteGeometry::WithWidth { width: 200.0 }
+    }
 }
