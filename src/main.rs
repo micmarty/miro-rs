@@ -1,4 +1,4 @@
-use miro_rs::structs::{Position, Positional, StickyNoteCreate};
+use miro_rs::structs::{Position, StickyNoteCreate};
 use serde::{Deserialize, Serialize};
 use serde_json::Deserializer;
 use serde_json::{json, Value};
@@ -7,28 +7,61 @@ use std::{default, env};
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let board_name = "RustyBrown";
     let board_id = "uXjVPRi1YRA=";
-    // use std::{thread, time};
-    // let ten_millis = time::Duration::from_millis(1000);
-    // let now = time::Instant::now();
+    use std::{thread, time};
+    let ten_millis = time::Duration::from_millis(1000);
+    let now = time::Instant::now();
 
-    // thread::sleep(ten_millis);
+    thread::sleep(ten_millis);
     // create_board(board_name)?;
-    let mut custom_note = StickyNoteCreate::with_text("siema".into());
-    custom_note.at(Position { x: 400.0, y: 600.0 });
+    let custom_note = StickyNoteCreate::with_text("How is is goin'? 🐴".into())
+        .at(Position {
+            x: -200.0,
+            y: 600.0,
+        })
+        .with_random_color();
+    let first_note = miro_rs::create_sticky_note(&board_id, &custom_note).expect("dasd");
+    thread::sleep(ten_millis);
+
+    let custom_note =
+        StickyNoteCreate::with_text("I'm building some fancy SageMaker Pipeline here!".into())
+            .at(Position { x: 0.0, y: 600.0 })
+            .with_random_color();
+    let _ = miro_rs::create_sticky_note(&board_id, &custom_note).expect("dasd");
+    thread::sleep(ten_millis);
+
+    let custom_note = StickyNoteCreate::with_text("Keep your fingers crossed 🤞🏻".into())
+        .at(Position { x: 200.0, y: 600.0 })
+        .with_random_color();
     let mut prev_note = miro_rs::create_sticky_note(&board_id, &custom_note).expect("dasd");
+    let first_id = prev_note.id.clone();
+    thread::sleep(ten_millis);
+
+    let mut ids: Vec<String> = Vec::new();
     for idx in 1..5 {
-        let mut next_note = StickyNoteCreate::with_text(format!("{}", idx));
-        next_note.at(Position {
-            x: idx as f32 * 260.0,
-            y: idx as f32 * 250.0,
-        });
+        let next_note = StickyNoteCreate::with_text(format!("{}", idx))
+            .at(Position {
+                x: idx as f32 * 300.0,
+                y: idx as f32 * 250.0,
+            })
+            .with_random_color();
         let next_note = miro_rs::create_sticky_note(&board_id, &next_note);
+        ids.push(next_note.clone().unwrap().id);
         if let Some(next_note) = next_note {
             println!("{}", next_note.style.fill_color);
             let _ = miro_rs::create_connector(&board_id, &prev_note.id, &next_note.id);
             prev_note = next_note;
         }
     }
+    let _ = miro_rs::create_connector(&board_id, &prev_note.id, &first_id);
+    for id in ids {
+        let _ = miro_rs::create_connector(&board_id, &prev_note.id, &id);
+    }
+    thread::sleep(ten_millis);
+    let very_last = StickyNoteCreate::with_text("Ohhh crap... 😅".into())
+        .at(Position { x: 600.0, y: 600.0 })
+        .with_random_color()
+        .with_width(1000.0);
+    let _ = miro_rs::create_sticky_note(&board_id, &very_last);
     Ok(())
 }
 

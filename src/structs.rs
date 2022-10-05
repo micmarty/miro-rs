@@ -1,9 +1,12 @@
+use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 // use chrono::{DateTime, Utc};
 // use derivative::Derivative;
-use strum::IntoStaticStr;
+use strum::{EnumCount, IntoEnumIterator};
+use strum::{FromRepr, IntoStaticStr};
+use strum_macros::{EnumCount as EnumCountMacro, EnumIter};
 
 // use strum::IntoStaticStr;
 
@@ -18,7 +21,17 @@ pub enum Shape {
 }
 // Color: light_yellow, yellow, orange, light_green, green, dark_green, cyan, light_pink, pink, violet, red, light_blue, blue, dark_blue, black
 #[derive(
-    Clone, Serialize, Deserialize, Copy, PartialEq, Eq, Debug, strum_macros::Display, IntoStaticStr,
+    FromRepr,
+    EnumCountMacro,
+    Clone,
+    Serialize,
+    Deserialize,
+    Copy,
+    PartialEq,
+    Eq,
+    Debug,
+    strum_macros::Display,
+    IntoStaticStr,
 )]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
@@ -131,7 +144,7 @@ impl StickyNoteData {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct StickyNoteResponse {
     pub id: String,
@@ -161,16 +174,6 @@ pub struct StickyNoteCreate {
     // pub parent: Option<Value>,
 }
 
-pub trait Positional {
-    fn at(&mut self, pos: Position);
-}
-
-impl Positional for StickyNoteCreate {
-    fn at(&mut self, pos: Position) {
-        self.position = Some(pos);
-    }
-}
-
 impl StickyNoteCreate {
     // TODO refactor to builder pattern
     pub fn with_text(text: String) -> Self {
@@ -181,16 +184,28 @@ impl StickyNoteCreate {
             geometry: Default::default(),
         }
     }
-}
 
-// impl Default for StickyNoteCreate {
-//     fn default() -> Self {
-//         Self {
-//             data: StickyNoteData::new(String::from("default text")),
-//             ..Default::default()
-//         }
-//     }
-// }
+    pub fn at(mut self, pos: Position) -> Self {
+        self.position = Some(pos);
+        self
+    }
+
+    pub fn with_random_color(mut self) -> Self {
+        let mut rng = rand::thread_rng();
+        let color_id = rng.gen_range(0..Color::COUNT);
+        let new_color = Color::from_repr(color_id).expect("failed to obtain color");
+
+        self.style = match self.style {
+            Some(s) => Some(s.with_color(new_color)),
+            None => Some(StickyNoteStyle::default().with_color(new_color)),
+        };
+        self
+    }
+    pub fn with_width(mut self, width: f32) -> Self {
+        self.geometry = Some(StickyNoteGeometry::WithWidth { width: width });
+        self
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -238,6 +253,13 @@ pub struct StickyNoteStyle {
     pub fill_color: Color,
     pub text_align: HorizontalAlignment,
     pub text_align_vertical: Option<VerticalAlignment>,
+}
+
+impl StickyNoteStyle {
+    fn with_color(mut self, new_color: Color) -> Self {
+        self.fill_color = new_color;
+        self
+    }
 }
 
 impl Default for StickyNoteStyle {
